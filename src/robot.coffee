@@ -1,5 +1,5 @@
 Fs             = require 'fs'
-Log            = require 'log'
+Log            = require 'npmlog'
 Path           = require 'path'
 HttpClient     = require 'scoped-http-client'
 {EventEmitter} = require 'events'
@@ -30,6 +30,26 @@ HUBOT_DOCUMENTATION_SECTIONS = [
   'urls'
 ]
 
+class Logger
+	constructor: (level) ->
+		Log.level = level
+		Log.heading = '[hubot]'
+		Log.headingStyle = { fg: 'magenta' }
+		Log.addLevel('debug', 1000, { fg: 'yellow' }, 'dbug')
+		Log.addLevel('error', 5000, { fg: 'white', bg: 'red' }, 'ERR!')
+		@log = Log
+	prefix: () ->
+		d = new Date()
+		return d.toLocaleString()
+	debug: (message) ->
+		Log.debug @prefix(), message
+	info: (message) ->
+		Log.info @prefix(), message
+	warning: (message) ->
+		Log.warn @prefix(), message
+	error: (message) ->
+		Log.error @prefix(), message
+
 class Robot
   # Robots receive messages from a chat source (Campfire, irc, etc), and
   # dispatch them to matching listeners.
@@ -55,7 +75,7 @@ class Robot
       listener: new Middleware(@)
       response: new Middleware(@)
       receive:  new Middleware(@)
-    @logger     = new Log process.env.HUBOT_LOG_LEVEL or 'info'
+    @logger     = new Logger process.env.HUBOT_LOG_LEVEL or 'info'
     @pingIntervalId = null
     @globalHttpOptions = {}
 
